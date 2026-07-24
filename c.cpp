@@ -474,11 +474,9 @@ int main()
     cout << a << "\t" << b << endl;
     */
     
-    int& a = *func() ;
-    cout << a << endl;
-    *func() = 999;
-    cout << &*&a << endl;
-    cout << &*&*&a <<endl;
+    //swap()
+
+
 
 
 
