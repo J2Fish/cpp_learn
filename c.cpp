@@ -475,7 +475,7 @@ int main()
     */
     
     //swap()
-
+    cout << "new life" << endl;
 
 
 

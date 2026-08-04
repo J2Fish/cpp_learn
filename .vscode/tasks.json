@@ -3,7 +3,7 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++.exe 生成活动文件",
-            "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+            "command": "D:\\msys64\\ucrt64\\bin\\g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-finput-charset=UTF-8",
@@ -12,15 +12,15 @@
                 "-g",
                 "${file}",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${fileDirname}\\output\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
                 "cwd": "${fileDirname}",
 
                 "env": {
-                    "TMP": "C:\\Temp",
-                    "TEMP": "C:\\Temp",
-                    "TMPDIR": "C:\\Temp"
+                    "TMP": "D:\\Temp\\CPP",
+                    "TEMP": "D:\\Temp\\CPP",
+                    "TMPDIR": "D:\\Temp\\CPP"
                 }
             },
             "problemMatcher": [
