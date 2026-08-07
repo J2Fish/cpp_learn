@@ -1,0 +1,33 @@
+# Knowing Starts With Practice
+
+### 2026-08-06
+
+
+1. c++20 feature: **string format output**
+should include format and set compiler as C++20(add "-std = c++20" in launch.json/task/args)
+```c++
+#include <format>
+#include <string>
+#include <iostream>
+using namespace std;
+int a = 1;
+string s = format("test{}", a); //string format output
+cout << s << endl;
+// output:
+// test1
+```
+``` json
+task[
+    {
+    ...
+    "args": [
+        ...
+        "-std = c++20",
+        ...
+    ]
+    ...
+    }
+]
+
+
+

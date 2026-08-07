@@ -476,6 +476,7 @@ int main()
     
     //swap()
     cout << "new life" << endl;
+    int a;
 
 
 
