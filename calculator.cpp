@@ -1,0 +1,54 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+
+// 代码量大了，但结构清晰
+class AbstractCalculator{
+    public:
+        int m_Num1;
+        int m_Num2;
+
+        virtual int GetResult() = 0;
+        virtual ~AbstractCalculator() = default;
+
+};
+
+
+class PlusCalculator:public AbstractCalculator{
+    public:
+        int GetResult(){
+            return m_Num1+m_Num2;
+        }
+};
+
+class SubCalculator:public AbstractCalculator{
+    public:
+        int GetResult(){
+            return m_Num1-m_Num2;
+        }
+};
+
+class MulCalculator:public AbstractCalculator{
+    public:
+        int GetResult(){
+            return m_Num1*m_Num2;
+        }
+};
+
+void test01(AbstractCalculator& caltor){
+    caltor.m_Num1 = 10;
+    caltor.m_Num2 = 20;
+    int a = caltor.GetResult();
+    cout << a << endl;
+
+}
+int main(){
+    PlusCalculator caltor;
+    test01(caltor);
+    
+
+
+
+    return 0;
+}
