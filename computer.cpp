@@ -42,11 +42,11 @@ class Computer{
         }
 
         void gpu_run(){
-            cpu.run();
+            gpu.run();
         }
 
         void ram_run(){
-            cpu.run();
+            ram.run();
         }
 };
 

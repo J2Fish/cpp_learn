@@ -725,6 +725,27 @@ Person(const Person &p);   // 参数是本类类型，只读，引用
 
 不用在构造函数内再赋值，可以直接赋值给属性，会直接赋予类定义中的值。灵活初始化可在对象中各自赋值。
 
+**聚合初始化**
+当一个类满足以下标准时，他是一个聚合类
+
+1. 没有用户声明的构造函数
+2. 没有私有或保护的非静态成员
+3. 没有基类
+4. 没有虚函数
+
+此时可以使用聚合初始化 -> 用花括号按照成员声明顺序初始化每一个成员
+代码示例：
+
+```
+class Person {
+    public:
+        char m_Name[64];
+        int m_Age;
+};
+Person p = {"aaa", 18};   // 拷贝列表初始化
+Person p{"aaa", 18};      // 直接列表初始化（C++11）
+```
+
 #### 2. 析构函数（Destructor）
 
 **语法：** `~类名(){}`
@@ -1081,3 +1102,161 @@ virtual ~类名(){} = 0；
 //类外定义
 类名::类名(){}
 ```
+
+## 十二、文件操作（File Operations）
+
+C++ 文件操作需要包含头文件 **`<fstream>`**
+
+**两种类型：**
+
+1. 文本文件 — 以 ASCII 码形式存储
+2. 二进制文件
+
+**三种操作：**
+
+1. `ofstream` — 写
+2. `ifstream` — 读
+3. `fstream` — 读写
+
+**打开方式：**
+
+| 打开方式        | 含义                     |
+| --------------- | ------------------------ |
+| `ios::in`     | 读                       |
+| `ios::out`    | 覆盖写入                 |
+| `ios::ate`    | 初始位置：文件尾         |
+| `ios::app`    | 追加写入                 |
+| `ios::trunc`  | 若文件存在则先删除再创建 |
+| `ios::binary` | 二进制方式               |
+
+> 可以组合使用，用 `|` 分割，如 `ios::out | ios::binary`。
+
+### 12.1 文本文件
+
+#### 1. 写入
+
+```cpp
+#include <fstream>
+using namespace std;
+
+// 创建流对象
+ofstream ofs;
+// 打开文件
+ofs.open("文件路径", ios::out);
+// 写数据
+ofs << "数据";
+// 关闭文件
+ofs.close();
+```
+
+#### 2. 读取
+
+```cpp
+#include <fstream>
+#include <iostream>
+using namespace std;
+
+// 创建流对象
+ifstream ifs;
+// 打开文件
+ifs.open("文件路径", ios::in);
+if (!ifs.is_open()) {
+    cout << "文件打开失败" << endl;
+    return;
+}
+
+char buf[1024] = { 0 };
+
+// 第一种：字符数组按空白字符（空格、换行、Tab）分割读取
+while (ifs >> buf) {
+    cout << buf << endl;
+}
+
+// 第二种：字符数组逐行读取
+while (ifs.getline(buf, sizeof(buf))) {
+    cout << buf << endl;
+}
+
+// 第三种：string 逐行读取
+string buf;
+while (getline(ifs, buf)) {
+    cout << buf << endl;
+}
+
+// 第四种：字符逐字读取
+char c;
+while ((c = ifs.get()) != EOF) {
+    cout << c;
+}
+
+// 关闭文件
+ifs.close();
+```
+
+**四种读取方式对比：**
+
+| 方式   | 方法                    | 读取单位 | 分隔依据                    | 适用场景                  |
+| ------ | ----------------------- | :------: | --------------------------- | ------------------------- |
+| 第一种 | `ifs >> buf`          |   单词   | 空白字符（空格、换行、Tab） | 按单词分割读取            |
+| 第二种 | `ifs.getline(buf, n)` |    行    | 换行符`\n`（C 风格）      | 定长n缓冲区逐行读取       |
+| 第三种 | `getline(ifs, buf)`   |    行    | 换行符`\n`（C++ 风格）    | 推荐：`string` 逐行读取 |
+| 第四种 | `ifs.get()`           |   字符   | 无（逐字符）                | 逐字符处理，直到 EOF      |
+
+> **推荐**：日常使用优先选第三种（`getline` + `string`），无需关心缓冲区大小，代码最简洁。
+
+### 12.2 二进制文件
+
+#### 1. 写入
+
+函数原型：`ostream& write(const char* buffer, int len);`
+
+- `buffer`：指向内存空间的指针
+- `len`：写入长度
+
+```cpp
+#include <fstream>
+using namespace std;
+
+class Person {
+public:
+    char m_Name[64];    // 不用 string，会有问题
+    int m_Age;
+};
+
+void test01() {
+    ofstream ofs("test.txt", ios::out | ios::binary);
+    Person p = {"aaa", 18};
+    ofs.write((const char*)&p, sizeof(Person));
+    ofs.close();
+}
+```
+
+#### 2. 读取
+
+函数原型：`istream& read(char* buffer, int len);`
+
+```cpp
+#include <fstream>
+#include <iostream>
+using namespace std;
+
+class Person {
+public:
+    char m_Name[64];
+    int m_Age;
+};
+
+void test01() {
+    ifstream ifs("test.txt", ios::in | ios::binary);
+    if (!ifs.is_open()) {
+        return;
+    }
+    Person p;
+    while (ifs.read((char*)&p, sizeof(Person))) {
+        cout << p.m_Name << "\t" << p.m_Age << endl;
+    }
+    ifs.close();
+}
+```
+
+> **注意**：不要用 `while (!ifs.eof())` 作为循环条件。`eof()` 在读取失败后才返回 `true`，会导致多读取一次末尾数据。应直接用 `read()` 的返回值作为循环条件。
