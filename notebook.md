@@ -1371,73 +1371,137 @@ swap(b, a); // a 被强转为 double
 
 > **!** 显式实例化对比隐式的优势在于可以在.h中指定暴露的接口以及减少编译时间
 
+### 13.2 类模板
 
-类模板 
-作用：
-    建立一个通用类，类中成员的数据类型可以不具体制定，用虚拟类型表示
-语法：
-    ``` C++
-    template <class T>  
-    class classname{...};
-    ```
-代码示例：
-    ``` C++
-    template <class Name_Type, class  Id_Type>
-    class Person{
-        Id_Type id;
-        Name_Type name;
-        public:
-            Person(Name_Type name, Id_Name):name(name), id(id){};
-    };
-    int main() {
-        Person<string, int> ("mace", 11);
-    }
-    ```
-类模板与函数模板的区别：
-    1、类模板无法自动推导类型
-    2、类模板的类型参数中可以有默认参数
-类模板中成员函数的创建（实例化）时机
-    普通类中，在一开始就会实例化 -> 普通类中的所有成员函数都会编译
-    类模板中，在调用时才实例化 -> 模板中只有调用了的成员函数才编译
+作用：建立一个通用类，类中成员的数据类型可以不具体制定，用虚拟类型表示。
 
-类模板对象做函数参数
-    1、指定传入的类型   直接写数据类型
-    2、参数模板化   模板就是参数
-    3、整个类模板化    将对象类型 模板化后传递
+#### 1. 语法
 
-    代码示例:
-    ``` C++
-    //直接指定
-    void test(Person<string, int> &p){};
-    //参数模板化
-    void test(Person(T1, T2) &p){}; //会直接跟着实参的参数类型
-    //整个类模板化
-    template (class T)
-    void test(T &p){};
+```c++
+template <class T>
+class classname { ... };
+```
 
-类模板与继承
-    父类为类模板，子类为普通类时，在子类声明时，T必须指定
-    如果不指定，编译器无法给子类分配内存
-    如果想灵活指定父类T，则子类也变为类模板
+#### 2. 代码示例
 
-    代码示例
-    ``` C++
-    template <class Name_Type, class Id_Type>
-    class father{};
+```c++
+template <class Name_Type, class Id_Type>
+class Person {
+    Id_Type id;
+    Name_Type name;
+public:
+    Person(Name_Type name, Id_Type id) : name(name), id(id) {}
+};
 
-    class son:public father<string, int>{};
+int main() {
+    Person<string, int> p("mace", 11);
+}
+```
 
-    template <class Name_Type, class Id_Type>
-    class son:public father<Name_Type, Id_Type>{};
-    ```
-类模板成员函数的类外实现
-    类内声明，实现是一样的，类外实现则要加上模板和参数类型
-    代码示例：
-    ``` C++
-    //构造函数的类外实现
-    template<class T1, class T2>
-    Person<T1,T2>::Person(T1 a, T2 b){}
-    //普通成员函数的类外实现
-    template<class T1, class T2>
-    void Person<T1,T2>::test(T1 a, T2 b){}
-    ```
+#### 3. 类模板与函数模板的区别
+
+1. 类模板无法自动推导类型
+2. 类模板的类型参数中可以有默认参数
+
+#### 4. 类模板中成员函数的创建时机
+
+- 普通类中，在一开始就会实例化 → 普通类中的所有成员函数都会编译
+- 类模板中，在调用时才实例化 → 模板中只有调用了的成员函数才编译
+
+#### 5. 类模板对象做函数参数
+
+1. 指定传入的类型 — 直接写数据类型
+2. 参数模板化 — 模板就是参数
+3. 整个类模板化 — 将对象类型模板化后传递
+
+```c++
+// 直接指定
+void test(Person<string, int>& p) {}
+
+// 参数模板化
+template <class T1, class T2>
+void test(Person<T1, T2>& p) {}   // 会直接跟着实参的参数类型
+
+// 整个类模板化
+template <class T>
+void test(T& p) {}
+```
+
+#### 6. 类模板与继承
+
+父类为类模板，子类为普通类时，在子类声明时 T 必须指定。如果不指定，编译器无法给子类分配内存。如果想灵活指定父类 T，则子类也变为类模板。
+
+```c++
+template <class Name_Type, class Id_Type>
+class Father {};
+
+class Son : public Father<string, int> {};
+
+template <class Name_Type, class Id_Type>
+class Son : public Father<Name_Type, Id_Type> {};
+```
+
+#### 7. 类模板成员函数的类外实现
+
+类内声明，类外实现则要加上模板和参数类型。
+
+```c++
+// 构造函数的类外实现
+template <class T1, class T2>
+Person<T1, T2>::Person(T1 a, T2 b) {}
+
+// 普通成员函数的类外实现
+template <class T1, class T2>
+void Person<T1, T2>::test(T1 a, T2 b) {}
+```
+
+模板的分文件编写
+
+	在类模板中未调用的成员函数不实例化，因此导入.h时不会实例化任何函数，也就无法调用模板
+
+	解决方法:
+
+1. 直接包含.cpp | 不推荐
+2. 将.h与.cpp中的声明与代码放一起，写在.hpp里(.hpp作为类模板库的约定专用后缀)
+
+类模板与友元
+
+	分为友元函数的类内，类外实现
+
+	类内实现：直接在类内生成友元
+
+		全局函数若作为类模板的友元，需要在类内写实现
+
+	类外实现：要让编译器提前知道友元存在
+
+		全局函数在类外实现，作为类模板友元使用，则函数需要是模板函数
+
+1. 类内友元声明要带空函数类型列表 **<>**
+2. 类外实现需要以成员函数的类外实现格式展示
+3. 若参数中有类模板，则要提前声明类模板
+
+代码示列:
+
+```C++
+#include <iostream>
+using namespace std;
+
+template<class T1>
+class eg;
+
+template <class T1>
+void eg::test( eg<T1> ){};
+
+
+template<class T1>
+class eg
+{
+  public:
+  Person(T1 name):name(name){}
+  friend void test01<>(eg<T1> eg1);
+  private:
+	T1 name;
+  
+}
+
+```
