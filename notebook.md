@@ -1260,3 +1260,184 @@ void test01() {
 ```
 
 > **注意**：不要用 `while (!ifs.eof())` 作为循环条件。`eof()` 在读取失败后才返回 `true`，会导致多读取一次末尾数据。应直接用 `read()` 的返回值作为循环条件。
+
+## 十三、泛型编程（Generic Programming）
+
+### 13.1 模板
+
+模板分为类模板与函数模板。
+
+#### 1. 函数模板
+
+> **注意**：模板不创建函数，只是告诉编译器如何定义函数。
+
+概念：建立通用的模具，大大提高复用性。
+
+特点：
+
+1. 不可以直接使用，只是一个框架
+2. 模板的通用并不是万能的
+
+作用：建立一个通用函数，其函数返回值类型和形参类型可以不具体制定，用一个虚拟类型代表。
+
+定义语法：
+
+```c++
+template<typename T>
+//函数声明或定义
+```
+
+- `template`：声明创建模板
+- `typename`：表明后面的符号是一种数据类型，可以用 `class` 代替
+- `T`：通用的数据类型，名可以换，通常是大写字母
+
+代码示例：
+
+```c++
+template<typename T>
+void myswap(T &a, T &b){
+    T temp = a;
+    a = b;
+    b = temp;
+}
+```
+
+两种调用方式：
+
+1. 自动类型推定：`myswap(a, b)`
+2. 显式具体化指定类型：`myswap<int>(a, b);`
+
+注意事项：
+
+1. 自动类型推导要推导出一致的数据类型 `T` 才能用，即不会隐式转换类型
+2. 模板必须要确定出 `T` 的数据类型才能使用
+3. (对1的补充) 函数模版**支持多参数类型**，但是同一标识符的类型必须一致
+
+##### 模板的重载
+
+同样是通过不同的参数类型进行重载。
+
+代码示例：
+
+```c++
+template<typename T> void swap(T &a, T &b){...} //对数字的对换
+template<typename T> void swap(T a[], T b[], int &c){...} //对数组的对换
+```
+
+##### 显式具体化（Explicit Specialization）
+
+当出现不符合通用方式的数据类型时，模板失效，此时可以使用显式具体化来定义模板。
+
+定义语法：
+
+```c++
+template <> void func<T>(T &a, T &b){...}
+```
+
+`<T>` 是可选的，用于表示其为具体化模板，所以也可以写成：
+
+```c++
+template <> void swap(T &a, T &b){...}
+```
+
+同名具体化模板、模板、非模板函数的调用优先顺序：**非模板 > 模板 > 具体化模板**。
+
+##### 实例化与具体化
+
+- **实例化**：让编译器直接生成使用该类型参数的函数定义实例，需要建立在已完成的模板基础上。
+- **具体化**：写下使用该类型参数的函数模板定义。
+
+显式实例化的声明使用以下语法：
+
+```c++
+// 以声明形式出现
+template void func<T>(T &a, T &b);
+```
+
+与具体化的声明相比，不存在 `template` 后面的 `<>`。
+
+当单类型多参数模板显式实例化时，若调用时第一个实参是规定的类型，后面的不是，则会隐式转换后面的实参的值。
+
+示例：
+
+```c++
+int a;
+double b;
+template <typename T> void swap(T a1, T a2){...}
+template void swap<double>(double, double);
+swap(a, b); // 报错，无法推导 T
+swap(b, a); // a 被强转为 double
+```
+
+> **!** 显式实例化对比隐式的优势在于可以在.h中指定暴露的接口以及减少编译时间
+
+
+类模板 
+作用：
+    建立一个通用类，类中成员的数据类型可以不具体制定，用虚拟类型表示
+语法：
+    ``` C++
+    template <class T>  
+    class classname{...};
+    ```
+代码示例：
+    ``` C++
+    template <class Name_Type, class  Id_Type>
+    class Person{
+        Id_Type id;
+        Name_Type name;
+        public:
+            Person(Name_Type name, Id_Name):name(name), id(id){};
+    };
+    int main() {
+        Person<string, int> ("mace", 11);
+    }
+    ```
+类模板与函数模板的区别：
+    1、类模板无法自动推导类型
+    2、类模板的类型参数中可以有默认参数
+类模板中成员函数的创建（实例化）时机
+    普通类中，在一开始就会实例化 -> 普通类中的所有成员函数都会编译
+    类模板中，在调用时才实例化 -> 模板中只有调用了的成员函数才编译
+
+类模板对象做函数参数
+    1、指定传入的类型   直接写数据类型
+    2、参数模板化   模板就是参数
+    3、整个类模板化    将对象类型 模板化后传递
+
+    代码示例:
+    ``` C++
+    //直接指定
+    void test(Person<string, int> &p){};
+    //参数模板化
+    void test(Person(T1, T2) &p){}; //会直接跟着实参的参数类型
+    //整个类模板化
+    template (class T)
+    void test(T &p){};
+
+类模板与继承
+    父类为类模板，子类为普通类时，在子类声明时，T必须指定
+    如果不指定，编译器无法给子类分配内存
+    如果想灵活指定父类T，则子类也变为类模板
+
+    代码示例
+    ``` C++
+    template <class Name_Type, class Id_Type>
+    class father{};
+
+    class son:public father<string, int>{};
+
+    template <class Name_Type, class Id_Type>
+    class son:public father<Name_Type, Id_Type>{};
+    ```
+类模板成员函数的类外实现
+    类内声明，实现是一样的，类外实现则要加上模板和参数类型
+    代码示例：
+    ``` C++
+    //构造函数的类外实现
+    template<class T1, class T2>
+    Person<T1,T2>::Person(T1 a, T2 b){}
+    //普通成员函数的类外实现
+    template<class T1, class T2>
+    void Person<T1,T2>::test(T1 a, T2 b){}
+    ```
