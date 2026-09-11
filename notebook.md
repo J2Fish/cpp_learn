@@ -1,5 +1,3 @@
- 
-
 # C++ 学习笔记
 
 ---
@@ -1455,34 +1453,34 @@ template <class T1, class T2>
 void Person<T1, T2>::test(T1 a, T2 b) {}
 ```
 
-模板的分文件编写
+#### 8. 模板的分文件编写
 
-	在类模板中未调用的成员函数不实例化，因此导入.h时不会实例化任何函数，也就无法调用模板
+在类模板中未调用的成员函数不实例化，因此导入 .h 时不会实例化任何函数，也就无法调用模板。
 
-	解决方法:
+解决方法：
 
-1. 直接包含.cpp | 不推荐
-2. 将.h与.cpp中的声明与代码放一起，写在.hpp里(.hpp作为类模板库的约定专用后缀)
+1. 直接包含 .cpp | 不推荐
+2. 将 .h 与 .cpp 中的声明与代码放一起，写在 .hpp 里（.hpp 作为类模板库的约定专用后缀）
 
-类模板与友元
+#### 9. 类模板与友元
 
-	分为友元函数的类内，类外实现
+分为友元函数的类内实现与类外实现。
 
-	类内实现：直接在类内生成友元
+##### 类内实现
 
-		全局函数若作为类模板的友元，需要在类内写实现
+直接在类内生成友元。全局函数若作为类模板的友元，需要在类内写实现。
 
-	类外实现：要让编译器提前知道友元存在
+##### 类外实现
 
-		全局函数在类外实现，作为类模板友元使用，则函数需要是模板函数
+要让编译器提前知道友元存在。全局函数在类外实现，作为类模板友元使用，则函数需要是模板函数。
 
 1. 类内友元声明要带空函数类型列表 **<>**
-2. 类外实现需要以成员函数的类外实现格式展示
-3. 若参数中有类模板，则要提前声明类模板
+2. 类外实现需要以模板函数的类外实现格式展示
+3. 若声明中要用到类模板，则要提前声明类模板
 
-代码示列:
+代码示例：
 
-```C++
+```c++
 #include <iostream>
 using namespace std;
 
@@ -1490,18 +1488,309 @@ template<class T1>
 class eg;
 
 template <class T1>
-void eg::test( eg<T1> ){};
-
+void test01(eg<T1> eg1){
+  cout << eg1.name << endl;
+};
 
 template<class T1>
 class eg
 {
-  public:
-  Person(T1 name):name(name){}
-  friend void test01<>(eg<T1> eg1);
-  private:
-	T1 name;
-  
+public:
+    eg(T1 name) : name(name) {}
+    friend void test01<>(eg<T1> eg1);
+private:
+    T1 name;
+};
+
+template <class T1>
+void test01(eg<T1> eg1) {
+    cout << eg1.name << endl;
+}
+```
+
+### 13.3 STL
+
+STL 大体分为：
+
+1. 容器
+2. 算法
+3. 迭代器
+
+容器与算法通过迭代器无缝衔接。
+
+STL 的几乎所有代码都采用了模板类或模板函数。
+
+#### 1. 六大组件
+
+| 组件       | 作用                                   |
+| ---------- | -------------------------------------- |
+| 容器       | 各种数据结构                           |
+| 算法       | 各种常用算法                           |
+| 迭代器     | 容器与算法的胶合剂                     |
+| 仿函数     | 行为类似于函数，可作为算法的某种策略   |
+| 适配器     | 用来修饰容器或仿函数或迭代器接口的东西 |
+| 空间配置器 | 负责空间的配置和管理                   |
+
+#### 2. 容器、算法与迭代器
+
+##### 容器
+
+- **序列式容器**：强调值的排序，每个元素有固定顺序
+- **关联式容器**：在物理上无严格顺序关系
+
+##### 算法
+
+- **质变算法**：运算过程中会改变区间内元素内容，如拷贝、替换、删除等
+- **非质变算法**：运算中不会改变区间内元素内容，如查找、计数等
+
+##### 迭代器
+
+提供一种方法，使之能够依序寻访容器的各个元素，又无需暴露容器的内部表示方式。每个容器都有自己专属的迭代器。
+
+#### 3. 迭代器的分类
+
+| 种类           | 功能                                         | 支持运算                                                     |
+| -------------- | -------------------------------------------- | ------------------------------------------------------------ |
+| 输入迭代器     | 只读访问                                     | `++`、`==`、`!=`、`=`                                |
+| 输出迭代器     | 只写访问                                     | `++`                                                       |
+| 前向迭代器     | 读写操作，能向前推进迭代器                   | `++`、`==`、`!=`、`=`                                |
+| 双向迭代器     | 读写操作，能向前和向后操作                   | `++`、`--`                                               |
+| 随机访问迭代器 | 读写操作，能以跳跃方式访问任意数据，功能最强 | `++`、`--`、`[]`、`-n`、`<`、`<=`、`>=`、`>` |
+
+初识实例讲解：
+
+1. Vector 存放内置的数据类型
+
+- 容器：`vector`
+- 算法：`for_each`
+- 迭代器：`vector<int>::iterator`
+
+示例代码：
+
+```C++
+#include <vector>
+#include <iostream>
+#include <algorithm> //算法STL的头文件
+using namespace std;
+vector<int> v;
+
+v.push_back(10);
+
+vector<int>::iterator itBegin = v.begin();
+vector<int>::iterator itEnd = v.end();
+//上面这两都是指向对应位置int对象的指针
+
+//第一种遍历方式
+while (itBegin != itEnd){
+  cout << *itBegin << endl;
+  itBegin++; //后移
+}
+//第二种 适合要多次同一遍历数组的场景
+for (vector<int>:: iterator it = v.begin();it != itEnd; itBegin++){
+  cout << *itBegin << endl;
 }
 
+//第三种 for_each 
+void func(int val){
+  cout <<val <<endl;
+}
+for_each(v.begin(), v.end(), func)// func指在遍历时需要执行的函数
+```
+
+2. vector 存放自定义数据类型
+
+代码示例：
+
+```C++
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class Person{
+  public:
+  	string m_Name;
+  	int m_Id;
+}
+int main(){
+  Person p1("111",111);
+  Person p2("222",222);
+  Person p3("333",333);
+  Person p4("444",444);
+  Person p5("555",555);
+  Person p6("666",666);
+
+  vector<Person> v1;
+  v1.push_back(p1);
+  v1.push_back(p2);
+  v1.push_back(p3);
+  v1.push_back(p4);
+  v1.push_back(p5);
+  v1.push_back(p6);
+
+  //因为是指针，所以存地址也是一样的
+  vector<Person*> v2;
+  v2.push_back(&p1);
+  v2.push_back(&p2);
+  v2.push_back(&p3);
+  v2.push_back(&p4);
+  v2.push_back(&p5);
+  v2.push_back(&p6);
+  
+  for (vector<Person>::iterator it = v1.begin(); it != v.end(); it++){
+    cout << "name:" << it->m_Name << "\nid:" << it->m_Id <<endl;
+  }
+  
+  for (vector<Person>::iterator it = v2.begin(); it != v.end(); it++){
+    cout << "name:" << it->m_Name << "\nid:" << it->m_Id <<endl;
+  }
+  
+  return 0; 
+}
+```
+
+3. vector容器嵌套
+
+实例代码：
+
+```C++
+void test01(){
+  vector<vector <int>> v;
+  vector<int> v1;
+  vector<int> v2;
+  vector<int> v3;
+
+  for (int i = 0; i < 6; i++){
+    v1.push_back(i);
+    v2.push_back(i);
+    v3.push_back(i);
+  }
+  v.push_back(v1);
+  v.push_back(v2);
+  v.push_back(v3);
+
+  for (vector<vector<int>>::iterator i = v.begin(); i != v.end(); i++){
+    for (vector<int>::iterator i1 = (*i).begin; i1 != i->end(); i1++){
+      cout << *i1 << "/t";
+    }
+    cout << endl;
+  }
+}
+```
+
+STL常用容器
+
+1. string
+
+string 与char*的区别
+
+string 是封装了char* 的类,char*是指针
+
+- string 的构造函数
+
+```C++
+string(); // 空字符串
+string(const char* s); // 使用字符串s初始化
+string(const string& str); // 用string初始化string
+string(int n, char c); // 用n个字符c初始化
+```
+
+- string的赋值
+
+1. 等号可赋值char*, string, char
+2. assign()成员函数传入char*, char*的前n个字符, string, n个字符c
+
+```C++
+string str;
+char*[5] chars = {'2', '3', '4', '5', '6'};
+str.assign(chars, 3); // 前n个char
+str.assign(2, 's'); // n个char
+```
+
+！ assign也属于赋值，会覆盖之前的东西
+
+- string字符串拼接
+
+1. += 可加char*, char, string
+2. append 可加 char* , char*的前n个字符, string, string从pos开始的n个字符
+
+```C++
+str.append(const char* s, int n);
+str.append(string &s, int pos, int n);
+```
+
+- string 查找与替换， 可按char, char*, string查找
+
+1. find 查找首次出现位置，可设定开始位置，搜索长度
+2. rfind 末尾查找，同find
+3. replace 从pos开始替换n个字符串（char*或string）
+
+```C++
+find(const string& str, int pos = 0);
+// rfind同上
+string& replace(int pos, int n,const string& str);
+```
+
+- string 比较
+
+字符串按ASCII码比较
+
+= 返回 0
+
+\> 返回 1
+
+< 返回 -1
+
+1. compare 只能对string, char*比较
+
+```C++
+int compare(const string& str) const;
+```
+
+- string 字符存取 只能获取单个字符
+
+1. `str[int index]`
+2. `str.at(int index)`
+
+还可以直接修改
+
+```C++
+str[int index] = 'c';
+str.at(int index) = 'c';
+```
+
+- string插入与删除
+
+1. insert在pos插入 string或char*或n个c
+2. erase删除从pos开始的n个字符
+
+```C++
+string& insert(int pos, const char* s); // string一样
+string& insert(int pos, int n, cahr c);
+string& erase(int pos, int n = npos);
+```
+
+- string截取子串
+
+1. substr 截取从pos开始的后n个字符组成的字符串
+
+```C++
+string& substr(int pos = 0, int n = npos) const;
+```
+
+2. vector容器
+
+vector与数组非常相似，也称为单端数组
+
+vector可以动态扩展
+
+动态扩展：不是在原空间后接续，而是找到更大的内存空间，把原空间拷贝过去，再释放原空间
+
+vector构造：
+
+```C++
+vector<int> v1; // 默认无参构造
+vector<int> v2(v1.begin(), v1.end()) // 区间构造
+vector<int> v3(10, 100); // n个elem，10个100
+vector<int> v4(v3);// 拷贝构造
 ```
